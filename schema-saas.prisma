@@ -1,0 +1,216 @@
+// FacilityGuard SaaS - Multi-tenant Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant Organization model
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique  // URL-friendly identifier
+  domain      String?  @unique  // Custom domain for white-label
+  plan        Plan     @default(STARTER)
+  status      OrgStatus @default(TRIAL)
+  trialEndsAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Billing
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  billingEmail          String?
+  
+  // Branding
+  logo        String?
+  primaryColor String?
+  
+  users       User[]
+  facilities  Facility[]
+  surveys     Survey[]
+  subscriptions Subscription[]
+
+  @@index([slug])
+}
+
+// User model with SSO support
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  role          Role      @default(MEMBER)
+  organizationId String
+  
+  // SSO fields
+  provider      String?   // google, microsoft, auth0
+  providerId    String?   // external user ID
+  
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accounts      Account[]
+  sessions      Session[]
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Facilities with tenant isolation
+model Facility {
+  id             String   @id @default(cuid())
+  name           String
+  location       String?
+  type           FacilityType @default(RESTROOM)
+  organizationId String
+  qrCodeUrl      String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  surveys      Survey[]
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+// Survey responses with analytics
+model Survey {
+  id                String   @id @default(cuid())
+  facilityId        String
+  organizationId    String   // Tenant isolation
+  
+  // Ratings
+  cleanlinessRating Int
+  suppliesRating    Int
+  overallRating     Int?
+  
+  // Issues
+  hasIssues         Boolean  @default(false)
+  issueDescription  String?
+  issueType         IssueType?
+  urgency          Urgency   @default(LOW)
+  
+  // Metadata
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime @default(now())
+
+  facility     Facility     @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([facilityId])
+}
+
+// Subscription management
+model Subscription {
+  id               String   @id @default(cuid())
+  organizationId   String
+  stripeId         String   @unique
+  status           SubscriptionStatus
+  currentPeriodEnd DateTime
+  cancelAtPeriodEnd Boolean @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// Enums
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum Plan {
+  TRIAL
+  STARTER    // $29/month - 5 facilities, 1K surveys
+  PROFESSIONAL // $99/month - 25 facilities, 10K surveys  
+  ENTERPRISE   // $299/month - Unlimited
+}
+
+enum OrgStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum FacilityType {
+  RESTROOM
+  KITCHEN
+  LOBBY
+  OFFICE
+  OUTDOOR
+  OTHER
+}
+
+enum IssueType {
+  CLEANLINESS
+  SUPPLIES
+  MAINTENANCE
+  SAFETY
+  OTHER
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+}

@@ -1,0 +1,23 @@
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import '@/lib/amplify' // Initialize Amplify
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'FacilityGuard - Multi-Tenant SaaS Platform',
+  description: 'Transform your facility maintenance operations with real-time feedback, analytics, and team collaboration.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
+}
