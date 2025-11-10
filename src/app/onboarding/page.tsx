@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,24 +10,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Building2, Mail, User, Globe } from 'lucide-react'
 
-interface OnboardingProps {
-  searchParams: {
-    email?: string
-    name?: string
-  }
-}
-
-export default function OnboardingPage({ searchParams }: OnboardingProps) {
+function OnboardingContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState<'organization' | 'invite'>('organization')
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     organizationName: '',
     slug: '',
     inviteCode: '',
-    userEmail: searchParams.email || '',
-    userName: searchParams.name || ''
+    userEmail: '',
+    userName: ''
   })
+
+  useEffect(() => {
+    // Get search params client-side to avoid SSR issues
+    const email = searchParams.get('email') || ''
+    const name = searchParams.get('name') || ''
+    
+    setFormData(prev => ({
+      ...prev,
+      userEmail: email,
+      userName: name
+    }))
+  }, [searchParams])
 
   const handleCreateOrganization = async () => {
     setLoading(true)
@@ -134,7 +140,7 @@ export default function OnboardingPage({ searchParams }: OnboardingProps) {
                   id="orgName"
                   placeholder="Acme Corp"
                   value={formData.organizationName}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = e.target.value
                     setFormData(prev => ({ ...prev, organizationName: value }))
                     generateSlug(value)
@@ -153,7 +159,7 @@ export default function OnboardingPage({ searchParams }: OnboardingProps) {
                     className="rounded-l-none"
                     placeholder="acme-corp"
                     value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                   />
                 </div>
               </div>
@@ -174,7 +180,7 @@ export default function OnboardingPage({ searchParams }: OnboardingProps) {
                   id="inviteCode"
                   placeholder="Enter your invite code"
                   value={formData.inviteCode}
-                  onChange={(e) => setFormData(prev => ({ ...prev, inviteCode: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, inviteCode: e.target.value }))}
                 />
               </div>
 
@@ -223,5 +229,13 @@ export default function OnboardingPage({ searchParams }: OnboardingProps) {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+      <OnboardingContent />
+    </Suspense>
   )
 }
