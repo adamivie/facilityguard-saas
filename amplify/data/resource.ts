@@ -20,7 +20,7 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner(),
       allow.groups(['admins']),
-      allow.authenticated().to(['read']).where((org) => org.users.user_id.eq('')), // Users can read their org
+      allow.authenticated().to(['read']),
     ]),
 
   // User-Organization junction (for multi-tenant user access)
@@ -61,9 +61,7 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner(),
       allow.groups(['admins']),
-      allow.authenticated().to(['read']).where((facility) => 
-        facility.organization.users.user_id.eq('')
-      ),
+      allow.authenticated().to(['read']),
     ]),
 
   // Survey templates
@@ -87,9 +85,7 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner(),
       allow.groups(['admins']),
-      allow.authenticated().to(['read']).where((survey) => 
-        survey.organization.users.user_id.eq('')
-      ),
+      allow.authenticated().to(['read']),
     ]),
 
   // Survey responses from patrons
@@ -114,9 +110,7 @@ const schema = a.schema({
       allow.publicApiKey().to(['create']), // Allow public survey submissions
       allow.owner(),
       allow.groups(['admins']),
-      allow.authenticated().to(['read']).where((response) => 
-        response.facility.organization.users.user_id.eq('')
-      ),
+      allow.authenticated().to(['read']),
     ]),
 
   // Analytics aggregations (for dashboard)
@@ -140,9 +134,7 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner(),
       allow.groups(['admins']),
-      allow.authenticated().to(['read']).where((analytics) => 
-        analytics.organization.users.user_id.eq('')
-      ),
+      allow.authenticated().to(['read']),
     ]),
 });
 
