@@ -4,8 +4,8 @@
   "description": "FacilityGuard - Multi-tenant SaaS for facility maintenance and patron feedback",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+  "dev": "next dev",
+  "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",

@@ -3,18 +3,20 @@ backend:
   phases:
     build:
       commands:
-        - echo "No backend build required - using existing infrastructure"
+        - echo "Building Amplify Gen 2 backend..."
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        - npx ampx generate outputs --branch $AWS_BRANCH --app-id $AWS_APP_ID
     build:
       commands:
-        - echo "Building static SaaS application..."
+        - echo "Building full-stack Next.js application..."
         - npm run build
   artifacts:
-    baseDirectory: out
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
