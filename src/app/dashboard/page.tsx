@@ -1,33 +1,34 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { 
-  Building2, 
-  BarChart3, 
-  Users, 
-  QrCode,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Settings,
-  CreditCard,
-  Crown
-} from 'lucide-react'
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import FacilityDashboard from '@/components/FacilityDashboard';
 
-// Mock data for demo
-const mockOrganization = {
-  name: 'Acme Corp',
-  slug: 'acme-corp',
-  plan: 'PROFESSIONAL',
-  status: 'ACTIVE',
-  trialEndsAt: null,
-  users: 8,
-  facilities: 12,
-  surveysThisMonth: 2847
+export default function DashboardPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect to home
+  }
+
+  return <FacilityDashboard />;
+}
 }
 
 const mockUsage = {

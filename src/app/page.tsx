@@ -1,11 +1,64 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { CheckCircle, Building2, BarChart3, Shield, Zap, Users, Globe } from 'lucide-react'
+'use client';'use client';
 
-export default function SaaSLandingPage() {
-  const plans = [
+
+
+import { useEffect } from 'react';import { useEffect } from 'react';
+
+import { useAuth } from '@/lib/auth-context';import { useAuth } from '@/lib/auth-context';
+
+import { useRouter } from 'next/navigation';import { useRouter } from 'next/navigation';
+
+import AuthForm from '@/components/AuthForm';import AuthForm from '@/components/AuthForm';
+
+
+
+export default function HomePage() {export default function HomePage() {
+
+  const { isAuthenticated, isLoading } = useAuth();  const { isAuthenticated, isLoading } = useAuth();
+
+  const router = useRouter();  const router = useRouter();
+
+
+
+  useEffect(() => {  useEffect(() => {
+
+    if (!isLoading && isAuthenticated) {    if (!isLoading && isAuthenticated) {
+
+      router.push('/dashboard');      router.push('/dashboard');
+
+    }    }
+
+  }, [isAuthenticated, isLoading, router]);  }, [isAuthenticated, isLoading, router]);
+
+
+
+  if (isLoading) {  if (isLoading) {
+
+    return (    return (
+
+      <div className="min-h-screen flex items-center justify-center">      <div className="min-h-screen flex items-center justify-center">
+
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+
+      </div>      </div>
+
+    );    );
+
+  }  }
+
+
+
+  if (isAuthenticated) {  if (isAuthenticated) {
+
+    return null; // Will redirect to dashboard    return null; // Will redirect to dashboard
+
+  }  }
+
+
+
+  return <AuthForm />;  return <AuthForm />;
+
+}}
     {
       name: 'Starter',
       price: '$29',
