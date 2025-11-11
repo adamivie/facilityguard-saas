@@ -1,12 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removed 'output: export' for full-stack Amplify deployment
-  images: {
-    domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com'],
-  },
-  // Enable experimental features for better Amplify integration
+  // Removed static export for server-side deployment
   experimental: {
-    serverComponentsExternalPackages: ['aws-amplify'],
+    serverComponentsExternalPackages: [],
+  },
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 }
 
